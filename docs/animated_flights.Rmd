@@ -66,15 +66,16 @@ ggplot() +
   geom_sf(data=flights2, aes(color=as.numeric(diff), size=as.numeric(diff)), alpha=0.4, show.legend = "line") +
   scale_size(range = c(0.2,5)) +
   theme_void() +
+  theme(plot.title = element_text(color="black", size=14, face="bold")) +
   scale_color_continuous(low = "#f4ee42", high = "#091451") +
   guides(alpha=F) +
   coord_sf(ndiscr=1000)+
   theme(plot.background = element_rect(fill="#f5f5f2")) +
-  ggtitle("Flight delays to and from ZRH") +
+  ggtitle("Flight Delays to and from ZRH on December 8th, 2017") +
   guides(size = F) +
-  labs(color = "Delay time [sec]") +
+  labs(color = "Delay Time [sec]", subtitle = "Time: {frame_time}") +
   transition_time(effective_time) +
-  ease_aes('linear', interval = 5)
+  ease_aes('linear', interval = 0.05)
 
 anim_save("pics/plot_2017-12-08.gif")
 
