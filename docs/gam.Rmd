@@ -1,0 +1,100 @@
+---
+title: "Air Traffic Challenge"
+output: 
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+    toc: true 
+    number_sections: true 
+    df_print: paged
+---
+
+#Libraries
+```{r,warning=FALSE, message=FALSE}
+library(dplyr)
+library(ggcorrplot)
+library(sf)
+library(mgcv)
+library(boot)
+library(lubridate)
+```
+
+#Data preparation
+```{r,warning=FALSE, message=FALSE}
+flights <- readRDS("~/Desktop/HackDays/twist_zrh_cleaned.RDS")
+flights$airline_name <- as.factor(flights$airline_name)
+flights$diff_in_sec <- as.numeric(flights$diff_in_secs)
+flights$precip <- as.numeric(flights$precip)
+flights$month <- month(flights$date)
+flights$hour <- hour(flights$planed_time)
+flights$day <- day(flights$date)
+
+#Cut-off = 30min
+flights$delayed <- 0
+flights[flights$diff_in_secs > 1800,]$delayed <- 1
+flights$delayed <- as.factor(flights$delayed)
+levels(flights$delayed) <- c("no", "yes")
+flights$no_flights <- 1
+```
+
+##Correlation matrix: Wheather data
+```{r,warning=FALSE, message=FALSE}
+flights$precip <- as.numeric(flights$precip)
+num_cov <- flights[,c("temp_avg", "temp_min", 
+                       "temp_max", "sunshine_dur_min","global_rad_avg_h", "precip", 
+                       "winddir_h", "windspeed_avg_h", "windspeed_peak_h",
+                          "airpres","rel_humid", "lightnings_hour_n", "lightnings_hour_f")]
+# nums <- unlist(lapply(num_cov, is.numeric))  #check for numeric cov.
+
+num_cov <- flights[,c("temp_avg", "temp_min", 
+                       "temp_max", "sunshine_dur_min","global_rad_avg_h", "precip", 
+                       "winddir_h", "windspeed_avg_h", "windspeed_peak_h",
+                          "airpres","rel_humid", "lightnings_hour_n", "lightnings_hour_f")]
+num_cov$precip <- as.numeric(num_cov$precip)
+corr <- round(cor(num_cov, use="complete.obs"),2)
+ggcorrplot(corr) +
+  ggtitle("Wheather data") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+#Subsettting
+```{r,warning=FALSE, message=FALSE}
+flights_s <- subset(flights, start_landing == "S")
+flights_sub <- flights_s %>%
+ group_by(airline_name) %>%
+ filter(n() > 1000)
+
+flights_sub <- flights_s%>%
+  mutate(h=lubridate::hour(planed_time)) %>%
+  group_by(date,h)%>%
+  mutate(flights_per_h=n())
+```
+
+
+```{r, fig.align='center'}
+layout(matrix(1:4, nrow = 2))
+spineplot(delayed ~ temp_avg, data = flights_sub)
+spineplot(delayed ~ windspeed_avg_h, data = flights_sub)
+spineplot(delayed ~ precip, data = flights_sub)
+spineplot(delayed ~ rel_humid, data = flights_sub)
+```
+\linebreak
+Showing the partial associations of discretised numeric exploratory covariates and their empirical relative frequencies plotted against the conditional frequency of delayed flights.
+
+#Gam-model
+```{r,warning=FALSE, message=FALSE}
+edelweiss <- subset(flights_sub, airline_name = "Edelweiss Air AG")
+fit_bin <- gam(delayed ~
+                 # s(airline_name, bs = "re")
+                 s(temp_avg)
+               + s(precip)
+               + s(airpres)
+               + s(windspeed_avg_h)
+               + s(rel_humid)
+               + distance_km
+               + continent
+               + flights_per_h
+               ,data=edelweiss, family=binomial())
+trans <- function(x) gaussian(link=log)$linkinv(x)
+plot(fit_bin, shade=TRUE, ylim = c(0, 3), pages=1, trans=trans)
+```
+
