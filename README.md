@@ -1,5 +1,8 @@
 ### Team Airtraffic is creating insightful visualizations of air traffic from / to Zurich Airport and predicting delays
 
+Have a look at our project-results here:
+https://openzh.github.io/twist_airtraffic/
+
 So far, we have:
 - conducted __exploratory data analysis__ and produced many descriptive visualizations to get to know the data and get a first understanding of which aspects of it might be relevant and interesting
 - experimented with a broad variety of modelling approaches (linear approaches, binary logistic regressions, ridge regression...) __to predict delays__
