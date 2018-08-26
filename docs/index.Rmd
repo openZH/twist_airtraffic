@@ -28,7 +28,7 @@ At the TWIST-Hackdays, the *terrific* __Team Airtraffic__ has:
 
 [3. Geogiffery!](https://openzh.github.io/twist_airtraffic/animated_flights)
 
-[4. Nightflights ](https://openzh.github.io/twist_airtraffic/animated_flights)
+[4. Analysis of Nightflights](https://github.com/openZH/twist_airtraffic/blob/master/docs/nightflights.png)
 
 # What we could have done (with a bit more time)
 
