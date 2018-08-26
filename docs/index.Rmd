@@ -11,17 +11,11 @@ output:
 
 __Team Airtraffic has created insightful visualizations of air traffic from / to Zurich Airport and built farly acurate delay prediction models__
 
-At the TWIST-Hackdays, Team Airtraffic has: 
+At the TWIST-Hackdays, the *terrific* __Team Airtraffic__ has: 
 
 - conducted __exploratory data analysis__ and produced many descriptive visualizations to get to know the data and get a first understanding of which aspects of it might be relevant and interesting
 - experimented with a broad variety of modelling approaches (linear approaches, binary logistic regressions, ridge regression, baynesian approaches) __to predict delays__
 -the fitted models predicted delays on the test data with a high accuracy
-
-__Next steps :__
-
-1. Try further prediction-approaches (baynesian, random forest e.g.) 
-2. Create some further insightful visualizations
-2. Discuss what the model could be used for (flight delay prediction app? ) 
 
 
 # What We've achieved!
@@ -31,6 +25,10 @@ __Next steps :__
 [2. Flight Delay Predictions]()
 
 [3. Geogiffery!]()
+
+# What we could have done (with a bit more time)
+
+A (shiny) prototype of a __flight prediction app__ based on the best prediction models! 
 
 
 
