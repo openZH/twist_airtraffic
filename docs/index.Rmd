@@ -20,11 +20,13 @@ At the TWIST-Hackdays, the *terrific* __Team Airtraffic__ has:
 
 # What We've achieved!
 
-[1. Explorative Data Analysis]()
+[1. Explorative Data Analysis](https://openzh.github.io/twist_airtraffic/airtraffic_prediction)
 
-[2. Flight Delay Predictions]()
+[2. Flight Delay Predictions](https://openzh.github.io/twist_airtraffic/airtraffic_prediction)
 
-[3. Geogiffery!]()
+[3. Geogiffery!](https://openzh.github.io/twist_airtraffic/animated_flights)
+
+[4. ]
 
 # What we could have done (with a bit more time)
 
