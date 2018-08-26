@@ -16,11 +16,11 @@ __Team Airtraffic has created insightful visualizations of air traffic from / to
 At the TWIST-Hackdays, the *terrific* __Team Airtraffic__ has: 
 
 - conducted __exploratory data analysis__ and produced many descriptive visualizations to get to know the data and get a first understanding of which aspects of it might be relevant and interesting
-- experimented with a broad variety of modelling approaches (linear approaches, binary logistic regressions, ridge regression, baynesian approaches) __to predict delays__
+- experimented with a broad variety of modelling approaches (linear approaches, binary logistic regressions, ridge regression, bayesian approaches) __to predict delays__
 -the fitted models predicted delays on the test data with a high accuracy
 
 
-# What We've achieved!
+# What we've done
 
 [1. Explorative Data Analysis](https://openzh.github.io/twist_airtraffic/airtraffic_prediction)
 
@@ -34,7 +34,7 @@ At the TWIST-Hackdays, the *terrific* __Team Airtraffic__ has:
 
 # What we could have done (with a bit more time)
 
-A (shiny) prototype of a __flight prediction app__ based on the best prediction models! 
+A (shiny) prototype of a __flight prediction app__ based on the best prediction models!
 
 
 
