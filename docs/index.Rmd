@@ -10,14 +10,15 @@ output:
 ---
 
 
-__Team Airtraffic has created insightful visualizations of air traffic from / to Zurich Airport and built farly acurate delay prediction models__
+__Team Airtraffic has created insightful visualizations of air traffic from / to Zurich Airport and experimented with delay prediction models__
 
+<center><img src="team_airtraffic.jpg" alt="Team Airtraffic" style="width: 350px;"/></center>
 
 At the TWIST-Hackdays, the *terrific* __Team Airtraffic__ has: 
 
 - conducted __exploratory data analysis__ and produced many descriptive visualizations to get to know the data and get a first understanding of which aspects of it might be relevant and interesting
 - experimented with a broad variety of modelling approaches (linear approaches, binary logistic regressions, ridge regression, bayesian approaches) __to predict delays__
--the fitted models predicted delays on the test data with a high accuracy
+-the fitted models predicted delays on the test data with good accuracy
 
 
 # What we've done
