@@ -204,7 +204,7 @@ fit_linear &lt;-<span class="st"> </span><span class="kw">lm</span>(model, <span
 fit_logist &lt;-<span class="st"> </span><span class="kw">glm</span>(model, <span class="dt">data =</span> <span class="kw">subset</span>(flights, start_landing <span class="op">==</span><span class="st"> &quot;Starting&quot;</span>), <span class="dt">family =</span> <span class="st">&quot;binomial&quot;</span>)</code></pre></div>
 <ul>
 <li>Classification performance was not good (90%, but this is just the average of non-delays)</li>
-<li>Especially classification is bad (much worse than classification of non-delays)</li>
+<li>Especially classification of delays is bad (much worse than classification of non-delays)</li>
 <li>But the model shows some interesting associations between some of the covariates and delays</li>
 <li>The model with the weather covariates is still significantly better when comparing the likelihood, rather than classification performance</li>
 <li>We also fitted a Bayesian logistic regression model that turned out very similar to this one</li>

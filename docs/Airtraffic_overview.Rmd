@@ -187,7 +187,7 @@ fit_logist <- glm(model, data = subset(flights, start_landing == "Starting"), fa
 ```
 
 * Classification performance was not good (90%, but this is just the average of non-delays)
-* Especially classification is bad (much worse than classification of non-delays)
+* Especially classification of delays is bad (much worse than classification of non-delays)
 * But the model shows some interesting associations between some of the covariates and delays
 * The model with the weather covariates is still significantly better when comparing the likelihood, rather than classification performance
 * We also fitted a Bayesian logistic regression model that turned out very similar to this one 
