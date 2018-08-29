@@ -23,7 +23,7 @@ At the TWIST-Hackdays, the *terrific* __Team Airtraffic__ has:
 
 [1. Explorative Data Analysis](https://openzh.github.io/twist_airtraffic/Airtraffic_overview)
 
-[2. Flight Delay Predictions (linear, logistic, bayesian)](https://openzh.github.io/twist_airtraffic/airtraffic_prediction)
+[2. Flight Delay Predictions (linear, logistic, bayesian)](https://openzh.github.io/twist_airtraffic/Airtraffic_overview)
 
 [3. Flight Delay Predictions (gam)](https://openzh.github.io/twist_airtraffic/gam)
 
