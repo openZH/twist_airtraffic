@@ -1,0 +1,229 @@
+---
+title: 'Twist 2018: Airtraffic Challenge'
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+    toc: true
+    number_sections: true
+    df_print: paged
+---
+  
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, cache = TRUE, fig.align = "center", fig.width = 10,
+                      warning = FALSE, message = FALSE, echo = FALSE)
+```
+
+# Data
+```{r echo = FALSE}
+# Libraries and Data 
+library(tidyverse)
+library(lubridate)
+library(gridExtra)
+theme_set(theme_bw())
+options(mc.cores = parallel::detectCores())
+
+flights <- read_csv("twist_zrh.csv")
+flights <- flights %>%
+  na.omit() %>% 
+  mutate(date = as.Date(date, "%d.%m.%Y"),
+         delayed = ifelse(abs(as.numeric(diff_in_secs)) > 1800, 1, 0),
+         start_landing = ifelse(start_landing == "S", "Starting", "Landing")) %>% 
+  mutate(hour = hour(planed_time),
+         month = month(date)) %>% 
+  mutate_at(vars(airline_code, airline_name, flightnr, start_landing,airplane_type,
+                 origin_destination_code, origin_destination_name, airport_type, delayed,
+                 iso_country, iso_region, municipality, continent, schengen, hour, month),
+            as.factor) %>% 
+  select(-tde200h0, -X1, -geometry)
+
+# selecting only flights that started from zurich and splitting in train and test data
+starting_flights <- flights %>%
+  filter(start_landing == "Starting")
+n <- nrow(starting_flights)
+set.seed(123)
+test <- sample(n, floor(n/10), replace = FALSE)
+```
+
+## A rich dataset from the airport of Zurich
+```{r echo = TRUE}
+glimpse(flights)
+```
+
+* All flights from the year 2017 (?) -- A ton of data!
+* Hourly weather data
+* Expected and actual arrival/departure times
+* Additional information about the flights (airline, airplane-type, etc.)
+
+# EDA
+## Distribution of the differences between expected and actual departure is skewed with extremely long tails
+```{r}
+theme_set(theme_bw())
+
+plot_all <- flights %>%
+  ggplot(aes(x = diff_in_secs)) + 
+    geom_histogram(bins = 60, col = 1) +
+    labs(title = "Full dataset", x = "Difference in seconds") +
+    facet_wrap(~ start_landing)
+
+plot_withoutoutliers <- flights %>%
+  filter(abs(diff_in_secs) < 10000) %>%
+  ggplot(aes(x = diff_in_secs)) + 
+    geom_histogram(bins = 60, col = 1) +
+    labs(title = "Absolute difference < 10000", x = "Difference in seconds") +
+    facet_wrap(~ start_landing)
+
+grid.arrange(plot_all, plot_withoutoutliers, ncol = 2)
+```
+
+* The *distribution of the difference* in seconds has many extreme values and also seems to be skewed. As expected the difference in seconds is more skewed for starting flights than for landing flights.
+
+## Seasonal and daily patterns visible
+```{r fig.width = 10}
+theme_set(theme_bw())
+
+flights %>%
+  filter(abs(diff_in_secs) < 2500) %>%
+  ggplot(aes(x = month, y = diff_in_secs)) + 
+    geom_boxplot() +
+    geom_hline(yintercept = 0, col = 4) +
+    facet_wrap(~ start_landing) +
+    labs(x = "Month of the year", y = "Difference in seconds", title = "Absolute difference < 2500")
+flights %>%
+  filter(abs(diff_in_secs) < 2500) %>%
+  ggplot(aes(x = hour, y = diff_in_secs)) + 
+    geom_boxplot() +
+    geom_hline(yintercept = 0, col = 4) +
+    facet_wrap(~ start_landing) +
+    labs(x = "Hour of the day", y = "Difference in seconds")
+```
+
+* Looking at the distribution of the difference in seconds for the different *months* over the year, one can clearly see that there are some seasonal patterns. The summer and winter holiday seasons are associated with higher difference in seconds.
+
+* Similar periodic patterns are visibile when looking at the the distribution of the difference in seconds at the different *hours* of the day. More delays occur in the morning compared to lunchtime, the afternoon, and in the evening.
+
+
+
+## Some airlines have a higher occurence of delays than others
+```{r}
+theme_set(theme_bw())
+
+flights %>%
+  arrange(airline_name) %>%
+  group_by(airline_name) %>%
+  filter(n() > 1000) %>%
+  ggplot(aes(x = airline_name, y = diff_in_secs, 
+                         group = airline_name)) +
+    geom_boxplot() +
+    geom_hline(yintercept = 0, col = 4) +
+    facet_wrap(~ start_landing) + 
+    ylim(-2000, 2500) +
+    coord_flip() +
+    labs(x = "Airline name", y = "Difference in seconds", 
+         title = "Airlines with more than 1000 flights (Absolute difference < 2500)")
+
+flights %>%
+  arrange(airplane_type) %>%
+  group_by(airplane_type) %>%
+  filter(n() > 100) %>%
+  ggplot(aes(x = airplane_type, y = diff_in_secs, 
+                         group = airplane_type)) +
+    geom_boxplot() +
+    geom_hline(yintercept = 0, col = 4) +
+    facet_wrap(~ start_landing) +
+    ylim(-2000, 2500) +
+    coord_flip() +
+    labs(x = "Airplane type", y = "Difference in seconds", 
+         title = "Airplane types with more than 100 flights")
+```
+
+* Looking at the difference in seconds distributions conditioned on the different *airlines*, it's clearly visible that some of them have more and longer delays than others. Thinking about possible explanations for the more frequent delays of different airlines we hypothesize that low-cost airlines (e.g. Air Berlin) try to minimize the time on the ground because of monetary reasons. Also we think that higher security standards could explain the more frequent delays of other airlines (e.g. El Al Israel).
+
+* Also visually visible are delay differences between the *different airplane* types. We hypothesize that the airlines have different airplane fleets and therefore some airplane types are not uniformly represented over all airlines. That's why we think that the delays associated with certain airlines propogate to the airplane types. 
+
+## Unsurprisingly weather variables are correlated
+```{r}
+library(ggcorrplot)
+num_cov <- flights[,c("temp_avg", "temp_min", "temp_max", 
+                      "sunshine_dur_min","global_rad_avg_h", "precip", "winddir_h",
+                      "windspeed_avg_h", "windspeed_peak_h", "airpres","rel_humid",
+                      "lightnings_hour_n", "lightnings_hour_f")]
+corr <- round(cor(num_cov, use = "complete.obs"), 2)
+ggcorrplot(corr)
+```
+
+* Dimension reduction methods, such as PCA, could be useful
+
+
+
+# Models
+
+## Linear models don't fit the data well
+```{r echo = TRUE}
+model <- as.formula(diff_in_secs ~ lightnings_hour_n + lightnings_hour_f 
+                         + windspeed_avg_h + windspeed_peak_h + global_rad_avg_h
+                         + airpres + precip + sunshine_dur_min + temp_avg + temp_min 
+                         + temp_max + rel_humid + distance_km + winddir_h + month + hour)
+fit_linear <- lm(model, data = subset(flights, start_landing == "Starting"))
+summary(fit_linear)$r.squared
+```
+```{r}
+theme_set(theme_bw())
+library(ggfortify)
+autoplot(fit_linear)
+```
+
+* We cannot explain the many extreme observations with the available covariates
+* We hypothesized that the extreme delays are due to  factors such as strikes or political events for which we don't have data available
+* Probably robust statistical method could help in this situation
+
+## Logistic regression models (dichotomize outcome)
+```{r echo = TRUE}
+model <- as.formula(delayed ~ lightnings_hour_n + lightnings_hour_f 
+                   + windspeed_avg_h + windspeed_peak_h + global_rad_avg_h
+                   + airpres + precip + sunshine_dur_min + temp_avg + temp_min 
+                   + temp_max + rel_humid + distance_km + winddir_h + month + hour)
+fit_logist <- glm(model, data = subset(flights, start_landing == "Starting"), family = "binomial")
+```
+
+* Classification performance was not good (90%, but this is just the average of non-delays)
+* Especially classification is bad (much worse than classification of non-delays)
+* But the model shows some interesting associations between some of the covariates and delays
+* The model with the weather covariates is still significantly better when comparing the likelihood, rather than classification performance
+* We also fitted a Bayesian logistic regression model that turned out very similar to this one 
+
+## Some of the model-predictions plotted (keeping other covariates fixed)
+```{r}
+library(visreg)
+distance <- visreg(fit_logist, "distance_km", scale = "response", gg = TRUE) + labs(y = "P(delayed = 1)") + ylim(0, 0.5)
+windspeed <- visreg(fit_logist, "windspeed_avg_h", scale = "response", gg = TRUE) + labs(y = "P(delayed = 1)") + ylim(0, 0.5)
+hours <- visreg(fit_logist, "hour", scale = "response", gg = TRUE) + labs(y = "P(delayed = 1)") + ylim(0, 0.5)
+month <- visreg(fit_logist, "month", scale = "response", gg = TRUE) + labs(y = "P(delayed = 1)") + ylim(0, 0.5)
+grid.arrange(distance, windspeed, hours, month)
+```
+
+## Random Forest Classification
+```{r}
+library(randomForest)
+model_form <- formula(delayed ~ distance_km + continent + schengen + lightnings_hour_n
+                      + lightnings_hour_f + winddir_h + windspeed_avg_h + windspeed_peak_h
+                      + global_rad_avg_h + airpres + precip + sunshine_dur_min + temp_avg
+                      + temp_min + temp_max + rel_humid + hour + month)
+
+
+rf1 <- randomForest(model_form, data = starting_flights, ntree = 500, 
+                    mtry = 4, importance = TRUE)
+print(rf1)
+varImpPlot(rf1, main = "Variable Importance")
+```
+
+* Also a random forest with the same input covariates cannot decrease the error rate further. Probably the weather covariates cannot improve prediction performance
+* The model is especially bad at predicting a delay (it's much better at predicting a non-delay), which is an indication that there are some other unobserved covariates that might be responsible for the delays
+
+
+# What could be done in the future
+
+* Try to find data about strikes and similar events that might explain extreme delays
+* Not categorize the delay time and try to transform it / use more robust methods
+* Use dimension reduction techniques like PCA to have less covariates and then regress the outcome on them
+* Use more complex models (boosting, random forests, neural networks) to improve predicitive performance (at the cost of interpretability)
